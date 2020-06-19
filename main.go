@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strings"
 	"time"
 )
 
@@ -163,6 +164,10 @@ func setChecksum(buf []byte, length int) {
 }
 
 func queryTimezone(tz string) (*time.Location, error) {
-	// TODO Translate Windows timezones to IANA timezones
+	normalizedTz := strings.ToLower(strings.ReplaceAll(tz, " ", ""))
+	if ianaTz, ok := windowsTZs[normalizedTz]; ok {
+		return time.LoadLocation(ianaTz)
+	}
+	// Fall back to treating it as an IANA timezone specification
 	return time.LoadLocation(tz)
 }
