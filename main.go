@@ -56,8 +56,6 @@ func runClient() {
 		for offset < len(resBuf) {
 			if n, err := conn.Read(resBuf[offset:]); err != nil {
 				log.Fatal(err)
-			} else if n == 0 {
-				break
 			} else {
 				offset += n
 			}
