@@ -9,12 +9,12 @@ import (
 	"time"
 )
 
-var listen string
+var endpoint string
 var client bool
 var tz string
 
 func init() {
-	flag.StringVar(&listen, "listen", "localhost:12300", "IP endpoint")
+	flag.StringVar(&endpoint, "endpoint", "localhost:12300", "IP endpoint")
 	flag.BoolVar(&client, "client", false, "Run in client mode")
 	flag.StringVar(&tz, "tz", "UTC", "Timezone to use in query")
 }
@@ -32,7 +32,7 @@ func runClient() {
 	if len(tz) > 60 {
 		log.Fatalf("Timezone too long: '%v'", tz)
 	}
-	if conn, err := net.Dial("tcp", listen); err != nil {
+	if conn, err := net.Dial("tcp", endpoint); err != nil {
 		log.Fatal(err)
 	} else {
 		reqBuf := make([]byte, 3+len(tz))
@@ -70,7 +70,7 @@ func runClient() {
 }
 
 func runServer() {
-	if listener, err := net.Listen("tcp", listen); err != nil {
+	if listener, err := net.Listen("tcp", endpoint); err != nil {
 		log.Fatal(err)
 	} else {
 		for {
