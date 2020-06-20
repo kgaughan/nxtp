@@ -22,7 +22,7 @@ To use it as a client, pass the `-client` flag. The `-endpoint` flag can be
 used with this to specify the server to connect to:
 
 ```console
-$ nxtp -client -endpoint time.nxtel.org
+$ nxtp -client -endpoint time.nxtel.org:12300
 ```
 
 By default, the client assumes the timezone to use is UTC. However, you can
