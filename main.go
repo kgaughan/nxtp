@@ -86,6 +86,12 @@ func handleConnection(conn net.Conn) {
 	//
 	// Max size is 3 + 60 = 63
 	reqBuf := make([]byte, 63)
+	// This is call to .Read() is janky. It assumes that the whole request
+	// will come in at once and that a malicious client won't just send slow,
+	// byte-by-byte requests. I'd much prefer if I could describe the shape of
+	// the incoming data and the relationship between CodeLen and Code.
+	// Thankfully, the OS buffers should be significantly bigger than 63B, so
+	// this isn't a practical issue, but it bugs me regardless.
 	if n, err := conn.Read(reqBuf); err == nil {
 		codeLen := int(reqBuf[1])
 		if n < 3 || reqBuf[0] != 1 || codeLen != n-3 || !testChecksum(reqBuf, codeLen+3) {
