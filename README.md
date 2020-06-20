@@ -35,6 +35,24 @@ $ nxtp -client -endpoint time.nxtel.org:12300 -tz "Nepal Standard Time"
 In server mode, `nxtp` supports IANA timezone specifiers, but other servers are
 not guaranteed to support anything other than Windows timezone specifiers.
 
+## Running as a daemon
+
+`nxtp` doesn't daemonise, so it's up to your process supervisor to manage it.
+With systemd, you can use the following unit:
+
+```ini
+[Unit]
+Description = Network neXt Time Protocol (NXTP) server
+After = network.target
+
+[Service]
+Type = simple
+ExecStart = /usr/bin/nxtp
+KillMode = process
+RestartSec = 5s
+Restart = on-failure
+```
+
 ## Building
 
 Run the following:
