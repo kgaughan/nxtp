@@ -42,29 +42,18 @@ func runClient() {
 			reqBuf[i+2] = tz[i]
 		}
 		setChecksum(reqBuf, len(reqBuf))
-
-		offset := 0
-		for offset < len(reqBuf) {
-			if n, err := conn.Write(reqBuf[offset:]); err != nil {
-				log.Fatal(err)
-			} else {
-				offset += n
-			}
+		if err := sendBuffer(conn, reqBuf); err != nil {
+			log.Fatal(err)
 		}
 
 		resBuf := make([]byte, 22)
-		offset = 0
-		for offset < len(resBuf) {
-			if n, err := conn.Read(resBuf[offset:]); err != nil {
-				log.Fatal(err)
-			} else {
-				offset += n
-			}
+		if _, err := recvBuffer(conn, resBuf); err != nil {
+			log.Fatal(err)
 		}
-
 		if resBuf[0] != 1 || resBuf[1] != 10 || resBuf[2] != 8 || !testChecksum(resBuf, len(resBuf)) {
 			log.Fatal("Bad response:", resBuf)
 		}
+
 		fmt.Printf("Date: %s; Time: %s\n", resBuf[3:13], resBuf[13:21])
 	}
 }
@@ -97,21 +86,6 @@ func handleConnection(conn net.Conn) {
 	//
 	// Max size is 3 + 60 = 63
 	reqBuf := make([]byte, 63)
-
-	// Version 1 response format:
-	//
-	// Name      Size  Notes
-	// --------  ----  -----
-	// Version   1     Always 1
-	// DateLen   1     Length of Date field; always 10
-	// TimeLen   1     Length of Time field; always 8
-	// Date      10    Calendar date in dd/MM/yyyy format; ASCII
-	// Time      8     Time of day in HH:mm:ss format; ASCII
-	// Checksum  1     XOR checksum of the response
-	//
-	// Max size is 4 + 10 + 8 = 22 bytes
-	resBuf := make([]byte, 22)
-
 	if n, err := conn.Read(reqBuf); err == nil {
 		codeLen := int(reqBuf[1])
 		if n < 3 || reqBuf[0] != 1 || codeLen != n-3 || !testChecksum(reqBuf, codeLen+3) {
@@ -120,30 +94,63 @@ func handleConnection(conn net.Conn) {
 		}
 
 		tz := string(reqBuf[2 : codeLen+2])
-		if location, err := queryTimezone(tz); err != nil {
-			log.Fatal(err)
-		} else {
-			now := time.Now().In(location)
-			payload := now.Format("02/01/200615:04:05")
-			resBuf[0] = 1
-			resBuf[1] = 10
-			resBuf[2] = 8
-			for i := 0; i < len(payload); i++ {
-				resBuf[i+3] = payload[i]
-			}
-			setChecksum(resBuf, len(resBuf))
+		location, err := queryTimezone(tz)
+		if err != nil {
+			// Bad timezone: ignore requests
+			return
+		}
 
-			offset := 0
-			for offset < len(resBuf) {
-				if n, err := conn.Write(resBuf[offset:]); err != nil {
-					log.Print(err)
-					break
-				} else {
-					offset += n
-				}
-			}
+		// Version 1 response format:
+		//
+		// Name      Size  Notes
+		// --------  ----  -----
+		// Version   1     Always 1
+		// DateLen   1     Length of Date field; always 10
+		// TimeLen   1     Length of Time field; always 8
+		// Date      10    Calendar date in dd/MM/yyyy format; ASCII
+		// Time      8     Time of day in HH:mm:ss format; ASCII
+		// Checksum  1     XOR checksum of the response
+		//
+		// Max size is 4 + 10 + 8 = 22 bytes
+		resBuf := make([]byte, 22)
+		now := time.Now().In(location)
+		payload := now.Format("02/01/200615:04:05")
+		resBuf[0] = 1
+		resBuf[1] = 10
+		resBuf[2] = 8
+		for i := 0; i < len(payload); i++ {
+			resBuf[i+3] = payload[i]
+		}
+		setChecksum(resBuf, len(resBuf))
+		if err := sendBuffer(conn, resBuf); err != nil {
+			log.Print(err)
+			return
 		}
 	}
+}
+
+func sendBuffer(conn net.Conn, buf []byte) error {
+	offset := 0
+	for offset < len(buf) {
+		if n, err := conn.Write(buf[offset:]); err != nil {
+			return err
+		} else {
+			offset += n
+		}
+	}
+	return nil
+}
+
+func recvBuffer(conn net.Conn, buf []byte) (int, error) {
+	offset := 0
+	for offset < len(buf) {
+		if n, err := conn.Read(buf[offset:]); err != nil {
+			return 0, err
+		} else {
+			offset += n
+		}
+	}
+	return offset, nil
 }
 
 func calcChecksum(buf []byte, length int) byte {
