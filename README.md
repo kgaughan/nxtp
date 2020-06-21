@@ -62,19 +62,15 @@ to help daemonise the server, which you can do with `pkgin install daemond`.
 Run the following:
 
 ```console
-$ CGO_ENABLED=0 go build -ldflags '-s -w'
+$ make
 ```
 
-That combination of flags ensures the binary is as small as possible without
-crunching.
-
-If building for a Raspberry PI, you'll need to also specify `GOARCH=arm`. Be
-sure to specify `GOOS` too, with a value such as `linux`, `netbsd`, &c.
+If building for a Raspberry PI, you'll need to also define `GOARCH=arm` in your
+environment, `GOOS` too, with a value of the target OS such as `linux`,
+`netbsd`, &c.
 
 ## Timezone data
 
 Translations of Windows timezone specifications to IANA ones are souced from
 the [Unicode Common Locale Data Repository](https://github.com/unicode-org/cldr),
 specifically `common/supplemental/windowsZones.xml` in that repository.
-
-Run `generatezones.py` to convert a copy of that file to Go.
