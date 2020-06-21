@@ -37,8 +37,9 @@ not guaranteed to support anything other than Windows timezone specifiers.
 
 ## Running as a daemon
 
-`nxtp` doesn't daemonise, so it's up to your process supervisor to manage it.
-With systemd, you can use the following unit:
+`nxtp` doesn't daemonise due to complications from the Go runtime, so it's up
+to your process supervisor to manage it.  With systemd, you can use the
+following unit:
 
 ```ini
 [Unit]
@@ -53,6 +54,9 @@ RestartSec = 5s
 Restart = on-failure
 ```
 
+Under `contrib` is a NetBSD rc script. It expects _daemond_ to be installed
+to help daemonise the server, which you can do with `pkgin install daemond`.
+
 ## Building
 
 Run the following:
@@ -64,9 +68,8 @@ $ CGO_ENABLED=0 go build -ldflags '-s -w'
 That combination of flags ensures the binary is as small as possible without
 crunching.
 
-If building for a Raspberry PI, you'll need to also specify `GOARCH=arm` and
-`GOARM=5`. Be sure to specify `GOOS` too, with a value such as `linux`,
-`netbsd`, &c.
+If building for a Raspberry PI, you'll need to also specify `GOARCH=arm`. Be
+sure to specify `GOOS` too, with a value such as `linux`, `netbsd`, &c.
 
 ## Timezone data
 

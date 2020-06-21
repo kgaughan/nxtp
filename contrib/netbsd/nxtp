@@ -1,0 +1,56 @@
+#!/bin/sh
+#
+# PROVIDE: nxtp
+# REQUIRE: DAEMON
+
+if [ -f /etc/rc.subr ]; then
+	. /etc/rc.subr
+fi
+
+name=nxtp
+rcvar=$name
+command="/usr/local/bin/${name}"
+pidfile="/var/run/${name}.pid"
+nxtp_flags="-endpoint :12300"
+start_cmd=nxtp_start
+
+nxtp_start () {
+	echo "Starting ${name}."
+	/usr/pkg/bin/daemond ${command} ${nxtp_flags}
+	/usr/bin/pgrep ${name} > ${pidfile}
+}
+
+if [ -f /etc/rc.subr -a -f /etc/rc.conf -a -f /etc/rc.d/DAEMON ]; then
+	load_rc_config $name
+	run_rc_command "$1"
+else
+	case ${1:-start} in
+	start)
+		if [ -x ${command} ]; then
+			nxtp_start
+		fi
+		;;
+	stop)
+		if [ -f ${pidfile} ]; then
+			pid=$(/usr/bin/head -1 ${pidfile})
+			echo "Stopping ${name}."
+			kill -TERM ${pid}
+		else
+			echo "${name} not running?"
+		fi
+		;;
+	restart)
+		$0 stop
+		sleep 1
+		$0 start
+		;;
+	status)
+		if [ -f ${pidfile} ]; then
+			pid=$(/usr/bin/head -1 ${pidfile})
+			echo "${name} is running as pid ${pid}."
+		else
+			echo "${name} is not running."
+		fi
+		;;
+	esac
+fi
