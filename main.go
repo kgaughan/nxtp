@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"strings"
@@ -72,7 +73,7 @@ func runServer() {
 	}
 }
 
-func handleConnection(conn net.Conn) {
+func handleConnection(conn io.ReadWriteCloser) {
 	defer conn.Close()
 
 	// Version 1 request format:
@@ -135,7 +136,7 @@ func handleConnection(conn net.Conn) {
 	}
 }
 
-func sendBuffer(conn net.Conn, buf []byte) error {
+func sendBuffer(conn io.Writer, buf []byte) error {
 	offset := 0
 	for offset < len(buf) {
 		if n, err := conn.Write(buf[offset:]); err != nil {
@@ -147,7 +148,7 @@ func sendBuffer(conn net.Conn, buf []byte) error {
 	return nil
 }
 
-func recvBuffer(conn net.Conn, buf []byte) (int, error) {
+func recvBuffer(conn io.Reader, buf []byte) (int, error) {
 	offset := 0
 	for offset < len(buf) {
 		if n, err := conn.Read(buf[offset:]); err != nil {
