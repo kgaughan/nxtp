@@ -4,3 +4,10 @@ nxtp: main.go zones.go
 zones.go: tools/windowsZones.xml
 	tools/generatezones.py $^ > $@
 	go fmt $@
+
+rebuild-zones: update-zones zones.go
+
+update-zones:
+	curl -L https://github.com/unicode-org/cldr/raw/master/common/supplemental/windowsZones.xml -o tools/windowsZones.xml
+
+.PHONY: rebuild-zones update-zones
