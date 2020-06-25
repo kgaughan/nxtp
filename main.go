@@ -36,27 +36,34 @@ func runClient() {
 	if conn, err := net.Dial("tcp", endpoint); err != nil {
 		log.Fatal(err)
 	} else {
-		reqBuf := make([]byte, 3+len(tz))
-		reqBuf[0] = 1
-		reqBuf[1] = byte(len(tz))
-		for i := 0; i < len(tz); i++ {
-			reqBuf[i+2] = tz[i]
-		}
-		setChecksum(reqBuf, len(reqBuf))
-		if err := sendBuffer(conn, reqBuf); err != nil {
-			log.Fatal(err)
-		}
-
-		resBuf := make([]byte, 22)
-		if _, err := recvBuffer(conn, resBuf); err != nil {
-			log.Fatal(err)
-		}
-		if resBuf[0] != 1 || resBuf[1] != 10 || resBuf[2] != 8 || !testChecksum(resBuf, len(resBuf)) {
-			log.Fatal("Bad response:", resBuf)
-		}
-
-		fmt.Printf("Date: %s; Time: %s\n", resBuf[3:13], resBuf[13:21])
+		dt, tm := makeRequest(conn, tz)
+		fmt.Printf("Date: %s; Time: %s\n", dt, tm)
 	}
+}
+
+func makeRequest(conn io.ReadWriteCloser, tz string) (string, string) {
+	defer conn.Close()
+
+	reqBuf := make([]byte, 3+len(tz))
+	reqBuf[0] = 1
+	reqBuf[1] = byte(len(tz))
+	for i := 0; i < len(tz); i++ {
+		reqBuf[i+2] = tz[i]
+	}
+	setChecksum(reqBuf, len(reqBuf))
+	if err := sendBuffer(conn, reqBuf); err != nil {
+		log.Fatal(err)
+	}
+
+	resBuf := make([]byte, 22)
+	if _, err := recvBuffer(conn, resBuf); err != nil {
+		log.Fatal(err)
+	}
+	if resBuf[0] != 1 || resBuf[1] != 10 || resBuf[2] != 8 || !testChecksum(resBuf, len(resBuf)) {
+		log.Fatal("Bad response:", resBuf)
+	}
+
+	return string(resBuf[3:13]), string(resBuf[13:21])
 }
 
 func runServer() {
