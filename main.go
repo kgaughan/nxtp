@@ -10,9 +10,11 @@ import (
 	"time"
 )
 
-var endpoint string
-var client bool
-var tz string
+var (
+	endpoint string
+	client   bool
+	tz       string
+)
 
 func init() {
 	flag.StringVar(&endpoint, "endpoint", "localhost:12300", "IP endpoint")
@@ -33,17 +35,16 @@ func runClient() {
 	if len(tz) > 60 {
 		log.Fatalf("Timezone too long: '%v'", tz)
 	}
-	if conn, err := net.Dial("tcp", endpoint); err != nil {
+	conn, err := net.Dial("tcp", endpoint)
+	if err != nil {
 		log.Fatal(err)
-	} else {
-		dt, tm := makeRequest(conn, tz)
-		fmt.Printf("Date: %s; Time: %s\n", dt, tm)
 	}
+	defer conn.Close()
+	dt, tm := makeRequest(conn, tz)
+	fmt.Printf("Date: %s; Time: %s\n", dt, tm)
 }
 
-func makeRequest(conn io.ReadWriteCloser, tz string) (string, string) {
-	defer conn.Close()
-
+func makeRequest(conn io.ReadWriter, tz string) (string, string) {
 	reqBuf := make([]byte, 3+len(tz))
 	reqBuf[0] = 1
 	reqBuf[1] = byte(len(tz))
@@ -67,15 +68,15 @@ func makeRequest(conn io.ReadWriteCloser, tz string) (string, string) {
 }
 
 func runServer() {
-	if listener, err := net.Listen("tcp", endpoint); err != nil {
+	listener, err := net.Listen("tcp", endpoint)
+	if err != nil {
 		log.Fatal(err)
-	} else {
-		for {
-			if conn, err := listener.Accept(); err != nil {
-				log.Println(err)
-			} else {
-				go handleConnection(conn)
-			}
+	}
+	for {
+		if conn, err := listener.Accept(); err != nil {
+			log.Println(err)
+		} else {
+			go handleConnection(conn)
 		}
 	}
 }
@@ -146,11 +147,11 @@ func handleConnection(conn io.ReadWriteCloser) {
 func sendBuffer(conn io.Writer, buf []byte) error {
 	offset := 0
 	for offset < len(buf) {
-		if n, err := conn.Write(buf[offset:]); err != nil {
-			return err
-		} else {
-			offset += n
+		n, err := conn.Write(buf[offset:])
+		if err != nil {
+			return fmt.Errorf("truncated respons: %w", err)
 		}
+		offset += n
 	}
 	return nil
 }
@@ -158,11 +159,12 @@ func sendBuffer(conn io.Writer, buf []byte) error {
 func recvBuffer(conn io.Reader, buf []byte) (int, error) {
 	offset := 0
 	for offset < len(buf) {
-		if n, err := conn.Read(buf[offset:]); err != nil {
-			return 0, err
-		} else {
-			offset += n
+		var n int
+		var err error
+		if n, err = conn.Read(buf[offset:]); err != nil {
+			return 0, fmt.Errorf("truncated request: %w", err)
 		}
+		offset += n
 	}
 	return offset, nil
 }
@@ -184,11 +186,19 @@ func setChecksum(buf []byte, length int) {
 	buf[length-1] = calcChecksum(buf, length)
 }
 
-func queryTimezone(tz string) (*time.Location, error) {
+func normalizeTimezone(tz string) string {
 	normalizedTz := strings.ToLower(strings.ReplaceAll(tz, " ", ""))
 	if ianaTz, ok := windowsTZs[normalizedTz]; ok {
-		return time.LoadLocation(ianaTz)
+		return ianaTz
 	}
 	// Fall back to treating it as an IANA timezone specification
-	return time.LoadLocation(tz)
+	return tz
+}
+
+func queryTimezone(tz string) (*time.Location, error) {
+	loc, err := time.LoadLocation(normalizeTimezone(tz))
+	if err != nil {
+		return nil, fmt.Errorf("could not query timezone %q: %w", tz, err)
+	}
+	return loc, nil
 }
