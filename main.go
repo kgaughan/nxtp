@@ -16,13 +16,14 @@ var (
 	endpoint = flag.String("endpoint", "localhost:12300", "IP endpoint")
 	client   = flag.Bool("client", false, "Run in client mode")
 	tz       = flag.String("tz", "UTC", "Timezone to use in query")
+	Version  = "unknown"
 )
 
 func main() {
 	flag.Usage = func() {
 		out := flag.CommandLine.Output()
 		name := path.Base(os.Args[0])
-		fmt.Fprintf(out, "%s - A small NXTP client and server.\n\n", name)
+		fmt.Fprintf(out, "%s (%s) - A small NXTP client and server.\n\n", name, Version)
 		fmt.Fprintf(out, "Usage:\n\n")
 		flag.PrintDefaults()
 	}
