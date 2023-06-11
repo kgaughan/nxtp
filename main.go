@@ -6,25 +6,28 @@ import (
 	"io"
 	"log"
 	"net"
+	"os"
+	"path"
 	"strings"
 	"time"
 )
 
 var (
-	endpoint string
-	client   bool
-	tz       string
+	endpoint = flag.String("endpoint", "localhost:12300", "IP endpoint")
+	client   = flag.Bool("client", false, "Run in client mode")
+	tz       = flag.String("tz", "UTC", "Timezone to use in query")
 )
 
-func init() {
-	flag.StringVar(&endpoint, "endpoint", "localhost:12300", "IP endpoint")
-	flag.BoolVar(&client, "client", false, "Run in client mode")
-	flag.StringVar(&tz, "tz", "UTC", "Timezone to use in query")
-}
-
 func main() {
+	flag.Usage = func() {
+		out := flag.CommandLine.Output()
+		name := path.Base(os.Args[0])
+		fmt.Fprintf(out, "%s - A small NXTP client and server.\n\n", name)
+		fmt.Fprintf(out, "Usage:\n\n")
+		flag.PrintDefaults()
+	}
 	flag.Parse()
-	if client {
+	if *client {
 		runClient()
 	} else {
 		runServer()
@@ -32,15 +35,15 @@ func main() {
 }
 
 func runClient() {
-	if len(tz) > 60 {
-		log.Fatalf("Timezone too long: '%v'", tz)
+	if len(*tz) > 60 {
+		log.Fatalf("Timezone too long: '%v'", *tz)
 	}
-	conn, err := net.Dial("tcp", endpoint)
+	conn, err := net.Dial("tcp", *endpoint)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer conn.Close()
-	dt, tm := makeRequest(conn, tz)
+	dt, tm := makeRequest(conn, *tz)
 	fmt.Printf("Date: %s; Time: %s\n", dt, tm)
 }
 
@@ -68,7 +71,7 @@ func makeRequest(conn io.ReadWriter, tz string) (string, string) {
 }
 
 func runServer() {
-	listener, err := net.Listen("tcp", endpoint)
+	listener, err := net.Listen("tcp", *endpoint)
 	if err != nil {
 		log.Fatal(err)
 	}
