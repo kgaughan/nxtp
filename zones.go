@@ -26,7 +26,7 @@ var windowsTZs = map[string]string{
 	"caucasusstandardtime":         "Asia/Yerevan",
 	"cen.australiastandardtime":    "Australia/Adelaide",
 	"centralamericastandardtime":   "America/Guatemala",
-	"centralasiastandardtime":      "Asia/Almaty",
+	"centralasiastandardtime":      "Asia/Bishkek",
 	"centralbrazilianstandardtime": "America/Cuiaba",
 	"centraleuropeanstandardtime":  "Europe/Warsaw",
 	"centraleuropestandardtime":    "Europe/Budapest",
