@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM gcr.io/distroless/static:latest
 
 LABEL org.opencontainers.image.title=NXTP
 LABEL org.opencontainers.image.description="An NXTP client and server"
@@ -8,7 +8,6 @@ LABEL org.opencontainers.image.url=https://github.com/kgaughan/nxtp
 LABEL org.opencontainers.image.source=https://github.com/kgaughan/nxtp
 LABEL org.opencontainers.image.documentation=https://kgaughan.github.io/nxtp/
 
-RUN apk --no-cache add tzdata
 COPY nxtp .
 USER nobody
 EXPOSE 12300
