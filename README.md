@@ -57,6 +57,14 @@ Restart = on-failure
 Under `contrib` is a NetBSD rc script. It expects _daemond_ to be installed
 to help daemonise the server, which you can do with `pkgin install daemond`.
 
+## Running under Docker
+
+To start the daemon in a Docker container, run:
+
+```sh
+docker run -d -p 12300:12300 ghcr.io/kgaughan/nxtp:latest
+```
+
 ## Building
 
 Run the following:
