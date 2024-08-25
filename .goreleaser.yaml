@@ -26,6 +26,7 @@ builds:
     mod_timestamp: "{{ .CommitTimestamp }}"
     tags:
       - netgo
+      - timetzdata
 
 archives:
   - format: tar.gz
