@@ -1,0 +1,12 @@
+[Unit]
+Description = Network neXt Time Protocol (NXTP) server
+After = network.target
+
+[Service]
+Type = simple
+ExecStart = /usr/bin/nxtp
+KillMode = process
+RestartSec = 5s
+Restart = on-failure
+
+# vi:set ft=dosini:
