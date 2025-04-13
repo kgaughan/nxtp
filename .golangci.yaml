@@ -24,10 +24,10 @@ linters:
     - nonamedreturns
     - revive
     - staticcheck
-    - tenv
     - typecheck
     - unconvert
     - unused
+    - usetesting
     - wrapcheck
 
     # Undecided
