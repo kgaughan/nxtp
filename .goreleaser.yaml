@@ -1,4 +1,6 @@
 ---
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
 version: 2
 
 before:
@@ -66,17 +68,32 @@ archives:
       - LICENSE
       - README.md
 
-dockers:
-  - image_templates:
-      - "{{ .Env.REGISTRY }}/{{ .Env.IMAGE }}:{{ .Tag }}"
-      - "{{ .Env.REGISTRY }}/{{ .Env.IMAGE }}:latest"
-    skip_push: auto
-    use: buildx
-    dockerfile: Dockerfile
+kos:
+  - base_image: gcr.io/distroless/static:nonroot
+    labels:
+      org.opencontainers.image.title: NXTP
+      org.opencontainers.image.description: An NXTP client and server
+      org.opencontainers.image.vendor: Keith Gaughan
+      org.opencontainers.image.licenses: MIT
+      org.opencontainers.image.url: https://github.com/kgaughan/nxtp
+      org.opencontainers.image.source: https://github.com/kgaughan/nxtp
+      org.opencontainers.image.documentation: https://kgaughan.github.io/nxtp/
+    repositories:
+      - ghcr.io/kgaughan/nxtp
+    platforms:
+      - linux/amd64
+    tags:
+      - latest
+      - "{{.Tag}}"
+    creation_time: "{{.CommitTimestamp}}"
+    sbom: none
+    bare: true
+    base_import_paths: true
+    disable: "{{ .IsSnapshot }}"
 
 checksum:
   algorithm: sha256
-  name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS'
+  name_template: "{{ .ProjectName }}_{{ .Version }}_SHA256SUMS"
 
 snapshot:
   version_template: "{{ incpatch .Version }}-next"
@@ -87,6 +104,3 @@ changelog:
     exclude:
       - "^docs:"
       - "^test:"
-
-# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
-# vim: set ts=2 sw=2 tw=0 fo=cnqoj

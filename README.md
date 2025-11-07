@@ -43,15 +43,19 @@ following unit:
 
 ```ini
 [Unit]
-Description = Network neXt Time Protocol (NXTP) server
-After = network.target
+Description=Network neXt Time Protocol (NXTP) server
+Wants=network.target
+After=network.target
 
 [Service]
-Type = simple
-ExecStart = /usr/bin/nxtp
-KillMode = process
-RestartSec = 5s
-Restart = on-failure
+Type=simple
+ExecStart=/usr/bin/nxtp
+KillMode=process
+RestartSec=5s
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
 ```
 
 Under `contrib` is a NetBSD rc script. It expects _daemond_ to be installed
@@ -67,10 +71,11 @@ docker run -d -p 12300:12300 ghcr.io/kgaughan/nxtp:latest
 
 ## Building
 
-Run the following:
+It's best if you download a release or use a container image, but if you really
+want to build your own, run:
 
 ```console
-$ make
+$ make nxtp
 ```
 
 If building for a Raspberry PI, you'll need to also define `GOARCH=arm` in your
