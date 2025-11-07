@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	endpoint = flag.String("endpoint", "localhost:12300", "IP endpoint")
+	endpoint = flag.String("endpoint", ":12300", "IP endpoint")
 	client   = flag.Bool("client", false, "Run in client mode")
 	tz       = flag.String("tz", "UTC", "Timezone to use in query")
 	Version  = "unknown"
