@@ -78,8 +78,6 @@ kos:
       org.opencontainers.image.url: https://github.com/kgaughan/nxtp
       org.opencontainers.image.source: https://github.com/kgaughan/nxtp
       org.opencontainers.image.documentation: https://kgaughan.github.io/nxtp/
-    repositories:
-      - ghcr.io/kgaughan/nxtp
     platforms:
       - linux/amd64
     tags:
