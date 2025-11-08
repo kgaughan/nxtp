@@ -30,8 +30,6 @@ jobs:
           check-latest: true
           cache: true
 
-      - uses: ko-build/setup-ko@v0.9
-
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
