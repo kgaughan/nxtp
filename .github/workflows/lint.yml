@@ -2,12 +2,12 @@
 name: Lint
 
 on:
-  - push:
-      branches-ignore:
-        - master
-      tags-ignore:
-        - "*"
-  - pull_request
+  push:
+    branches-ignore:
+      - master
+    tags-ignore:
+      - "*"
+  pull_request: {}
 
 permissions:
   contents: read
