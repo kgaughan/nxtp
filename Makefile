@@ -1,3 +1,5 @@
+NAME:=nxtp
+
 SOURCE:=$(wildcard *.go)
 
 .PHONY: help
@@ -8,32 +10,41 @@ help: ## Show this help message
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
 
 .PHONY: build
-build: $(SOURCE) ## Build nxtp binary
-	CGO_ENABLED=0 go build -tags netgo,timetzdata -trimpath -ldflags '-s -w'
+build: go.mod $(NAME) ## Build the nxtp binary
 
-.PHONY: tests
-tests: ## Run all tests with coverage
-	go test -cover -v ./...
+.PHONY: clean
+clean: ## Clean build artifacts
+	rm -rf $(NAME) dist coverage.out coverage.html
+
+$(NAME): $(SOURCE)
+	CGO_ENABLED=0 go build -v -tags netgo,timetzdata -trimpath -ldflags '-s -w' -o $@ .
 
 zones.go: tools/windowsZones.xml
 	tools/generatezones.py $^ > $@
 	go fmt $@
 
-.PHONY: update
-update: ## Update Go modules
-	go get -u ./...
-	go mod tidy
-
-go.mod: $(SOURCE)
-	go mod tidy
-
 .PHONY: fmt
-fmt: ## Format Go code
+fmt: ## Format the code
 	go fmt ./...
 
 .PHONY: lint
-lint: ## Lint Go code
+lint: ## Lint the code
 	go vet ./...
+	golangci-lint run ./...
+
+.PHONY: tests
+tests: ## Run the tests
+	go test -cover -coverprofile=coverage.out -v ./...
+
+coverage.out: tests
+
+.PHONY: coverage-html
+coverage-html: coverage.out ## Generate HTML report from coverage data
+	go tool cover -html=coverage.out -o coverage.html
+
+.PHONY: test-release
+test-release: ## Run `goreleaser release` without publishing anything
+	goreleaser release --auto-snapshot --clean --skip publish
 
 .PHONY: rebuild-zones
 rebuild-zones: update-zones zones.go ## Update Windows timezone data and regenerate zones.go
