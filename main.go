@@ -65,7 +65,7 @@ func makeRequest(conn io.ReadWriter, tz string) (string, string) {
 		log.Fatal(err)
 	}
 	if resBuf[0] != 1 || resBuf[1] != 10 || resBuf[2] != 8 || !testChecksum(resBuf, len(resBuf)) {
-		log.Fatal("Bad response:", resBuf)
+		log.Fatalf("Bad response: %v", resBuf)
 	}
 
 	return string(resBuf[3:13]), string(resBuf[13:21])
@@ -108,7 +108,7 @@ func handleConnection(conn io.ReadWriteCloser) {
 	if n, err := conn.Read(reqBuf); err == nil {
 		codeLen := int(reqBuf[1])
 		if n < 3 || reqBuf[0] != 1 || codeLen != n-3 || !testChecksum(reqBuf, codeLen+3) {
-			log.Print("Malformed request:", reqBuf)
+			log.Printf("Malformed request: %v", reqBuf)
 			return
 		}
 
