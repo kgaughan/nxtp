@@ -2,7 +2,12 @@
 name: Build
 
 on:
-  - push
+  - push:
+      branches:
+        - "*"
+        - "!master"
+      tags:
+        - "!*"
   - pull_request
 
 permissions:

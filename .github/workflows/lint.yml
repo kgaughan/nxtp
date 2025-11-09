@@ -2,7 +2,12 @@
 name: Lint
 
 on:
-  - push
+  - push:
+      branches:
+        - "*"
+        - "!master"
+      tags:
+        - "!*"
   - pull_request
 
 permissions:
