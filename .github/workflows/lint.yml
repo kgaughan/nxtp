@@ -28,6 +28,6 @@ jobs:
       - name: Lint
         uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.3.0
+          version: v2.12.2
           args: --issues-exit-code=0
           only-new-issues: true
