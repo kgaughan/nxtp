@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io"
@@ -28,31 +29,37 @@ func main() {
 		flag.PrintDefaults()
 	}
 	flag.Parse()
+
+	ctx := context.Background()
 	if *client {
-		runClient()
+		runClient(ctx)
 	} else {
-		runServer()
+		runServer(ctx)
 	}
 }
 
-func runClient() {
+func runClient(ctx context.Context) {
 	if len(*tz) > 60 {
 		log.Fatalf("Timezone too long: '%v'", *tz)
 	}
-	conn, err := net.Dial("tcp", *endpoint)
+
+	dc := net.Dialer{}
+	conn, err := dc.DialContext(ctx, "tcp", *endpoint)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer conn.Close()
+
 	dt, tm := makeRequest(conn, *tz)
 	fmt.Printf("Date: %s; Time: %s\n", dt, tm)
 }
 
 func makeRequest(conn io.ReadWriter, tz string) (string, string) {
-	reqBuf := make([]byte, 3+len(tz))
+	clampedLen := min(len(tz), 255)
+	reqBuf := make([]byte, 3+clampedLen)
 	reqBuf[0] = 1
-	reqBuf[1] = byte(len(tz))
-	for i := 0; i < len(tz); i++ {
+	reqBuf[1] = byte(clampedLen) //nolint:gosec
+	for i := range clampedLen {
 		reqBuf[i+2] = tz[i]
 	}
 	setChecksum(reqBuf, len(reqBuf))
@@ -71,8 +78,11 @@ func makeRequest(conn io.ReadWriter, tz string) (string, string) {
 	return string(resBuf[3:13]), string(resBuf[13:21])
 }
 
-func runServer() {
-	listener, err := net.Listen("tcp", *endpoint)
+func runServer(ctx context.Context) {
+	lc := net.ListenConfig{
+		KeepAlive: 30 * time.Second,
+	}
+	listener, err := lc.Listen(ctx, "tcp", *endpoint)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -137,8 +147,8 @@ func handleConnection(conn io.ReadWriteCloser) {
 		resBuf[0] = 1
 		resBuf[1] = 10
 		resBuf[2] = 8
-		for i := 0; i < len(payload); i++ {
-			resBuf[i+3] = payload[i]
+		for i := range len(payload) {
+			resBuf[i+3] = payload[i] //nolint:gosec
 		}
 		setChecksum(resBuf, len(resBuf))
 		if err := sendBuffer(conn, resBuf); err != nil {
@@ -176,7 +186,7 @@ func recvBuffer(conn io.Reader, buf []byte) (int, error) {
 func calcChecksum(buf []byte, length int) byte {
 	var sum byte
 	sum = 123 // seed
-	for i := 0; i < length-1; i++ {
+	for i := range length - 1 {
 		sum ^= buf[i]
 	}
 	return sum
