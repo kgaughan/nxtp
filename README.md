@@ -71,14 +71,16 @@ docker run -d -p 12300:12300 ghcr.io/kgaughan/nxtp:latest
 
 ## Building
 
+You'll need [just](https://just.systems/) for this.
+
 It's best if you download a release or use a container image, but if you really
 want to build your own, run:
 
 ```console
-$ make nxtp
+$ just build
 ```
 
-If building for a Raspberry PI, you'll need to also define `GOARCH=arm` in your
+If building for a Raspberry Pi, you'll need to also define `GOARCH=arm` in your
 environment, `GOOS` too, with a value of the target OS such as `linux`,
 `netbsd`, &c.
 
