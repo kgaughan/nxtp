@@ -24,11 +24,17 @@ linters:
     - whitespace
     - wrapcheck
   disable:
+    - exhaustruct
     - forbidigo
     - gochecknoglobals
+    - gomodguard
+    - gomodguard_v2
     - mnd
+    - nlreturn
     - noinlineerr
     - varnamelen
+    - wsl
+    - wsl_v5
   exclusions:
     generated: lax
     presets:
