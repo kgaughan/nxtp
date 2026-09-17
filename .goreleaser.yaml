@@ -51,7 +51,7 @@ homebrew_casks:
     # Homebrew 7 decprecates the postflight block, so until
     # goreleaser/goreleaser#6870 is released, writing the compatible method
     # with a custom block is good enough. The weird dance is needed to avoid
-    # test/template from interpreting `{{staged_template}}` itself.
+    # test/template from interpreting `{{staged_path}}` itself.
     custom_block: |
       postflight_steps do
         on_macos do
